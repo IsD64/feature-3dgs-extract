@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .trainable import AbstractTrainableFeatureDecoder
-from feature_3dgs.utils import pca_inverse_transform_params_to_transform_params
-from feature_3dgs.utils.featurefusion import feature_fusion_alpha_avg
+from .trainable import AbstractTrainableDecoder
+from feature_3dgs.utils.featurefusion import feature_fusion_alpha_avg, feature_fusion_alpha_max
+from feature_3dgs.utils.featurepickup import feature_pickup_alpha_max
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from feature_3dgs.gaussian_model import SemanticGaussianModel
 
 
-class LinearDecoder(AbstractTrainableFeatureDecoder):
+class LinearDecoder(AbstractTrainableDecoder):
     """Trainable linear decoder backed by a single ``nn.Linear(C_enc, C_feat)``.
 
     Provides per-point and per-pixel encode/decode operations, PCA-based
@@ -24,8 +24,10 @@ class LinearDecoder(AbstractTrainableFeatureDecoder):
     downsampling / upsampling.
     """
 
-    def __init__(self, in_channels: int, out_channels: int):
+    def __init__(self, in_channels: int, out_channels: int, init_method="fusion avg"):
         self.linear = nn.Linear(in_channels, out_channels)
+        assert init_method in ["pickup max", "fusion avg", "fusion max"], f"Unsupported init method {init_method}"
+        self.init_method = init_method
 
     # ------------------------------------------------------------------
     # Per-point operations
@@ -103,9 +105,12 @@ class LinearDecoder(AbstractTrainableFeatureDecoder):
         with torch.no_grad():
             self.linear.weight.copy_(weight)
             self.linear.bias.copy_(bias)
-        weight, bias = pca_inverse_transform_params_to_transform_params(weight, bias)
-        fused, _ = feature_fusion_alpha_avg(gaussians, dataset, weight, bias)
-        # fused, _ = feature_fusion_alpha_max(gaussians, dataset, weight, bias)  # worse than avg
+        if self.init_method == "pickup max":
+            fused, _ = feature_pickup_alpha_max(gaussians, dataset, self.encode_feature_pixels)
+        elif self.init_method == "fusion avg":
+            fused, _ = feature_fusion_alpha_avg(gaussians, dataset, self.encode_feature_map)
+        elif self.init_method == "fusion max":
+            fused, _ = feature_fusion_alpha_max(gaussians, dataset, self.encode_feature_map)  # worse than avg
         gaussians._encoded_semantics = nn.Parameter(fused.requires_grad_(True))
 
     # ------------------------------------------------------------------

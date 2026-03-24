@@ -6,12 +6,12 @@ from feature_3dgs.decoder import LinearDecoder
 from .extractor import padding
 
 
-class DINOv3LinearAvgDecoder(LinearDecoder):
-    """Decoder that aligns Gaussian features with DINOv3 extractor output.
+class VGGTLinearAvgDecoder(LinearDecoder):
+    """Decoder that aligns Gaussian features with VGGTExtractor output.
 
     Extends ``LinearDecoder`` with patch-level average pooling
     (``decode_feature_map``) and bilinear upsampling (``encode_feature_map``)
-    to match the spatial resolution of the DINOv3 patch-based extractor.
+    to match the spatial resolution of the VGGT patch-based extractor.
     """
 
     def __init__(self, *args, patch_size: int, **configs):
@@ -19,8 +19,8 @@ class DINOv3LinearAvgDecoder(LinearDecoder):
         Args:
             in_channels:  Per-point semantic embedding dimension rendered by
                           the Gaussian rasteriser.
-            out_channels: Feature dimension D produced by DINOv3Extractor.
-            patch_size:   Patch size used by the paired DINOv3Extractor.
+            out_channels: Feature dimension D produced by VGGTExtractor.
+            patch_size:   Effective patch size (16) used by the paired VGGTExtractor.
         """
         super().__init__(*args, **configs)
         self.patch_size = patch_size
@@ -37,9 +37,9 @@ class DINOv3LinearAvgDecoder(LinearDecoder):
             x = x.reshape(H, W, -1).permute(2, 0, 1)      # (C_feat, H, W)
             x = F.avg_pool2d(x, kernel_size=P, stride=P)   # (C_feat, H_p, W_p)
 
-        Because avg_pool (mean over P² elements) and the linear layer are
+        Because avg_pool (mean over P**2 elements) and the linear layer are
         both linear operations, they fuse into one Conv2d with kernel
-        ``weight[:, :, None, None] / P²`` and stride P.
+        ``weight[:, :, None, None] / P**2`` and stride P.
         """
         P = self.patch_size
         x = padding(feature_map, P)                        # (C_enc, H', W')
