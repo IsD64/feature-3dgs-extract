@@ -8,7 +8,6 @@ import cv2
 
 from feature_3dgs.extractor import AbstractFeatureExtractor
 
-from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 
 def padding(image: torch.Tensor, patch_size: int) -> torch.Tensor:
@@ -45,8 +44,9 @@ class SAM2Extractor(AbstractFeatureExtractor):
         x = (image * 255).astype(np.uint8).numpy().transpose(1, 2, 0)  
         x = TF.normalize(x, mean=TRANSFORMS_MEAN, std=TRANSFORMS_STD)
         x = padding(x, self.patch_size)
-        # Set image and get embedding
+
         self.predictor.set_image(x)
+
         # Shape: (1, C, H', W')
         # According to documentation, should be (1, 256, 64, 64)
         embedding = self.predictor.get_image_embedding() 
