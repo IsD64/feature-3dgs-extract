@@ -15,24 +15,36 @@ STRIDE_SIZE = 32  # YOLO's default stride size (downsampling factor)
 MODEL_YOLOV8SEG = "yolov8seg"
 MODEL_YOLO11SEG = "yolo11seg"
 MODEL_YOLO26SEG = "yolo26seg"
+MODEL_YOLOV8SEGX = "yolov8segx"
+MODEL_YOLO11SEGX = "yolo11segx"
+MODEL_YOLO26SEGX = "yolo26segx"
 
 MODELS = [
     MODEL_YOLOV8SEG,
     MODEL_YOLO11SEG,
     MODEL_YOLO26SEG,
+    MODEL_YOLOV8SEGX,
+    MODEL_YOLO11SEGX,
+    MODEL_YOLO26SEGX
 ]
 
 MODEL_TO_FILENAME = {
-    MODEL_YOLOV8SEG: "yolov8l.pt",
+    MODEL_YOLOV8SEG: "yolov8l-seg.pt",
     MODEL_YOLO11SEG: "yolo11l-seg.pt",
     MODEL_YOLO26SEG: "yolo26l-seg.pt",
+    MODEL_YOLOV8SEGX: "yolov8x-seg.pt",
+    MODEL_YOLO11SEGX: "yolo11x-seg.pt",
+    MODEL_YOLO26SEGX: "yolo26x-seg.pt",
 }
 
 FEATURE_DIMS = {
     # TODO: confirm these dimensions by inspecting the actual model outputs
-    MODEL_YOLOV8SEG: 1024,
-    MODEL_YOLO11SEG: 1280,
-    MODEL_YOLO26SEG: 1280,
+    MODEL_YOLOV8SEG: 512,
+    MODEL_YOLO11SEG: 512,
+    MODEL_YOLO26SEG: 512,
+    MODEL_YOLOV8SEGX: 640,
+    MODEL_YOLO11SEGX: 768,
+    MODEL_YOLO26SEGX: 768,
 }
 
 # # https://github.com/ultralytics/assets/releases

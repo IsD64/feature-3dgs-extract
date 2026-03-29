@@ -27,22 +27,38 @@ def padding(image: torch.Tensor, stride: int, resolution: int) -> torch.Tensor:
     image_padded = torch.from_numpy(image_padded).permute(2, 0, 1).float() / 255.0
     return image_padded
 
+
 class YOLOExtractor(AbstractFeatureExtractor):
     def __init__(self, model: nn.Module, stride: int, resolution: int):
         self.model = model
         self.stride_size = stride
         self.resolution = resolution
         self.model.eval()
+        self.spatial_features = {}
+
+        def hook_fn(module, input, output):
+            self.spatial_features["backbone"] = output.detach()
+
+        for m in self.model.model.model:
+            if m.__class__.__name__ == "SPPF":
+                self._hook_handle = m.register_forward_hook(hook_fn)
 
     @torch.no_grad()
     def __call__(self, image: torch.Tensor) -> torch.Tensor:
 
         x = image
-        x_padded = padding(x, self.stride_size, self.resolution)
+        x_padded = padding(x, self.stride_size, self.resolution).to("cuda" if torch.cuda.is_available() else "cpu")
 
-        feats = self.model.predict(x_padded.unsqueeze(0), imgsz = self.resolution, embed=[-1])[0]
-        feature_map = feats[0].embeddings.squeeze(0)  # (D, H_p, W_p)
-        return feature_map
+        feats = self.model.predict(x_padded.unsqueeze(0), imgsz = self.resolution)
+        # # feats = self.model.embed(x_padded.unsqueeze(0))
+        # backbone = self.model
+        # backbone.eval()
+        # print(backbone)
+        # print(x_padded.unsqueeze(0).shape)
+        # feats = backbone(x_padded.unsqueeze(0))[0]
+        # for i, m in enumerate(self.model.model.model):
+        #         print(i, type(m))
+        return self.spatial_features["backbone"].squeeze(0)  # (D, H_p, W_p)
 
     def to(self, device) -> 'YOLOExtractor':
         self.model.to(device)
