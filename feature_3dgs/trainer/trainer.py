@@ -43,6 +43,17 @@ class SemanticTrainer(TrainerWrapper):
         render = out['feature_map']
         gt = camera.custom_data['feature_map']
         mask = camera.ground_truth_image_mask
+
+        # Align size between network render and ground truth feature map.
+        # This can differ due to integer rounding on camera/projection settings.
+        if render.shape[1:] != gt.shape[1:]:
+            min_h = min(render.shape[1], gt.shape[1])
+            min_w = min(render.shape[2], gt.shape[2])
+            render = render[:, :min_h, :min_w]
+            gt = gt[:, :min_h, :min_w]
+            if mask is not None:
+                mask = mask[:min_h, :min_w]
+
         match self.mask_mode:
             case "none":
                 pass

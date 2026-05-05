@@ -17,7 +17,8 @@ def padding(image: torch.Tensor, stride: int, resolution: int) -> torch.Tensor:
         (H, W, C) tensor after letterbox padding
     """
     # Convert (C, H, W) to (H, W, C) for LetterBox
-    image_hwc = image.permute(1, 2, 0).numpy()  # (H, W, C)
+    origin_device = image.device
+    image_hwc = image.permute(1, 2, 0).cpu().detach().numpy()  # (H, W, C)
     image_hwc = (image_hwc * 255).astype('uint8')  # Convert [0,1] float to [0,255] uint8
 
     letterbox = LetterBox(resolution, stride=stride, auto=False)
@@ -25,7 +26,7 @@ def padding(image: torch.Tensor, stride: int, resolution: int) -> torch.Tensor:
 
     # Convert back to (C, H, W) float [0, 1]
     image_padded = torch.from_numpy(image_padded).permute(2, 0, 1).float() / 255.0
-    return image_padded
+    return image_padded.to(origin_device)
 
 
 class YOLOExtractor(AbstractFeatureExtractor):
@@ -58,7 +59,7 @@ class YOLOExtractor(AbstractFeatureExtractor):
         # feats = backbone(x_padded.unsqueeze(0))[0]
         # for i, m in enumerate(self.model.model.model):
         #         print(i, type(m))
-        return self.spatial_features["backbone"].squeeze(0)  # (D, H_p, W_p)
+        return self.spatial_features["backbone"].squeeze(0).clone()  # (D, H_p, W_p)
 
     def to(self, device) -> 'YOLOExtractor':
         self.model.to(device)

@@ -16,6 +16,8 @@ class YOLODecoder(LinearDecoder):
         S = self.stride_size
         x = padding(feature_map, stride=S, resolution=self.resolution)  # (C_feat, H', W')
         weight = self.linear.weight[:, :, None, None].expand(-1, -1, S, S) / (S * S)
+        print(f"weight device: {weight.get_device()}")
+        print(f"linear bias device: {self.linear.bias.get_device()}")
         return F.conv2d(x.unsqueeze(0), weight, self.linear.bias, stride=S).squeeze(0)
 
     def encode_feature_map(self, feature_map, camera):

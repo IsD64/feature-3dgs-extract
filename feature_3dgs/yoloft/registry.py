@@ -46,7 +46,7 @@ FEATURE_DIMS = {
     MODEL_YOLO26SEGX: 768,
 }
 
-def YOLOFeatureExtractor(model_name: str, checkpoint_dir: str) -> YOLOExtractor:
+def YOLOFeatureExtractor(model_name: str, checkpoint_dir: str = "checkpoints") -> YOLOExtractor:
     if model_name not in MODELS:
         raise ValueError(f"Unsupported YOLO model name: {model_name}")
     model_path = os.path.join(checkpoint_dir, MODEL_TO_FILENAME[model_name])
@@ -54,11 +54,13 @@ def YOLOFeatureExtractor(model_name: str, checkpoint_dir: str) -> YOLOExtractor:
     return YOLOExtractor(model=model, stride=STRIDE_SIZE, resolution=INTERNAL_RESOLUTION)
 
 def build_factory(version: str):
-    def factory(embed_dim: int, checkpoint_dir: str, **configs) -> Tuple[AbstractFeatureExtractor, AbstractTrainableDecoder]:
+    def factory(embed_dim: int, checkpoint_dir: str = "checkpoints", **configs) -> Tuple[AbstractFeatureExtractor, AbstractTrainableDecoder]:
         extractor = YOLOFeatureExtractor(model_name=version, checkpoint_dir=checkpoint_dir)
         decoder = YOLODecoder(
             in_channels=embed_dim,
             out_channels=FEATURE_DIMS[version],  # identity mapping; no dimensionality change
+            stride_size=STRIDE_SIZE,
+            resolution=INTERNAL_RESOLUTION,
             **configs,
         )
         return extractor, decoder

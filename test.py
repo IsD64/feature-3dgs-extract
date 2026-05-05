@@ -1,8 +1,8 @@
 import PIL
 import torch
 from ultralytics import YOLO
-from feature_3dgs.yolo.registry import MODEL_TO_FILENAME, MODEL_YOLOV8SEG, YOLOFeatureExtractor
-from feature_3dgs.dinov3.vit import DINOv3ViTExtractor
+from feature_3dgs.yoloft.registry import MODEL_TO_FILENAME, MODEL_YOLOV8SEG, YOLOFeatureExtractor
+from feature_3dgs.dinov3ft.vit import DINOv3ViTExtractor
 from gaussian_splatting.camera import read_image
 print(torch.cuda.is_available())
 print(torch.version.cuda)

@@ -51,10 +51,17 @@ MODEL_TO_CHECKPOINT = {
     MODEL_SAM2_LARGE: "sam2.1_hiera_large.pt",
 }
 
+MODEL_TO_CONFIG = {
+    MODEL_SAM2_TINY: "configs/sam2.1/sam2.1_hiera_t.yaml",
+    MODEL_SAM2_SMALL: "configs/sam2.1/sam2.1_hiera_s.yaml",
+    MODEL_SAM2_BASE_PLUS: "configs/sam2.1/sam2.1_hiera_b+.yaml",
+    MODEL_SAM2_LARGE: "configs/sam2.1/sam2.1_hiera_l.yaml",
+}
+
 def SAM2FeatureExtractor(version: str = "sam2_hiera_base_plus", checkpoint_dir: str = "checkpoints") -> SAM2Extractor:
     assert version in MODELS, f"SAM2 version '{version}' not supported. Choose from: {MODELS}"
     local_path = os.path.join(checkpoint_dir, MODEL_TO_CHECKPOINT[version])
-    sam2_model = build_sam2(version, ckpt_path=local_path)
+    sam2_model = build_sam2(config_file=MODEL_TO_CONFIG[version], ckpt_path=local_path)
     return SAM2Extractor(model=sam2_model, patch_size=SAM2_PATCH_SIZE)
 
 def build_factory(version: str):
@@ -63,7 +70,7 @@ def build_factory(version: str):
         decoder = SAM2Decoder(
             in_channels=embed_dim,
             out_channels=FEATURE_DIMS[version],
-            stride=SAM2_PATCH_SIZE,
+            patch_size=SAM2_PATCH_SIZE,
             **configs
         )
         return extractor, decoder

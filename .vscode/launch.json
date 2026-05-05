@@ -45,7 +45,7 @@
                 "-d",
                 "output/truck-semantic",
                 "-i",
-                "1000",
+                "0",
                 "--mode",
                 "base",
                 "-l",
@@ -168,7 +168,7 @@
                 "-d",
                 "output/truck-semantic",
                 "-i",
-                "30000",
+                "0",
                 "--load_camera",
                 "output/truck-semantic/cameras.json",
             ]
